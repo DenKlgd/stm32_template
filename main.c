@@ -7,6 +7,8 @@ void delay(uint32_t ticks) {
 	}
 }
 
+//Den4ik
+
 int __attribute((noreturn)) main(void) {
 	// Enable clock for AFIO
 	RCC->APB2ENR |= RCC_APB2ENR_AFIOEN;
