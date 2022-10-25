@@ -7,6 +7,24 @@ void delay(uint32_t ticks) {
 	}
 }
 
+void delay_us(uint32_t us)
+{
+	__asm volatile
+	(
+		"push {r0}\r\n"
+		"mov R0, %0\r\n"
+		"_loop:\r\n"
+			"cmp R0, #0\r\n"
+			"beq _exit\r\n"
+			"sub R0, R0, #1\r\n"
+			"nop\r\n"
+			"b _loop\r\n"
+		"_exit:\r\n"
+		"pop {r0}\r\n"
+		:: "r"(9 * us)
+	);
+}
+
 //Den4ik
 
 int __attribute((noreturn)) main(void) {
@@ -41,26 +59,17 @@ int __attribute((noreturn)) main(void) {
 	while (1)
 	{
 		//while (!(GPIOC->IDR & GPIO_IDR_IDR14));
-		delay(100);
 		if (!(GPIOC->IDR & GPIO_IDR_IDR14))
 		{
 			isPressed = ~isPressed;
-			if (isPressed)
-				GPIOC->ODR &= ~GPIO_ODR_ODR13;
-			else
-				GPIOC->ODR |= GPIO_ODR_ODR13;
+			delay_us(100);
 		}
-		
 
 		if (isPressed)
 			GPIOC->ODR &= ~GPIO_ODR_ODR13;
 		else
 			GPIOC->ODR |= GPIO_ODR_ODR13;
-
-		//delay(300000);
-
-		//delay(300000);
-		
+			
 	}
 
 }
