@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "display.h": "c",
+        "configuration.h": "c",
+        "spi.h": "c",
+        "stm32f10x.h": "c",
+        "delay.h": "c",
+        "stdint.h": "c",
+        "videobuffer.h": "c"
+    }
+}
