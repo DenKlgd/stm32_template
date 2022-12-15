@@ -4,7 +4,7 @@
         {
             "name": "Cortex Debug",
             "cwd": "${workspaceRoot}",
-            "executable": "${workspaceRoot}/build/stm32_experiments.elf",
+            "executable": "${workspaceRoot}/build/SNAKE.elf",
             "request": "launch",
             "type": "cortex-debug",
             "servertype": "openocd",

@@ -6,6 +6,7 @@
         "stm32f10x.h": "c",
         "delay.h": "c",
         "stdint.h": "c",
-        "videobuffer.h": "c"
+        "videobuffer.h": "c",
+        "stdbool.h": "c"
     }
 }

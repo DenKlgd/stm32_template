@@ -4,6 +4,7 @@
 
     #include <stdint.h>
     #include <stdbool.h>
+    #include "delay.h"
     #include "videobuffer.h"
     #include "images.h"
 
@@ -42,7 +43,7 @@
     typedef struct Snake
     {
         Coords coords[SNAKE_LENGTH];
-        Velocity velocity[SNAKE_LENGTH];
+        Velocity headVelocity, tailVelocity;
         Velocity prevDirection;
     } Snake;
 

@@ -23,9 +23,6 @@ int main(void)
 	initButtons();
 	placeFruit(10, 50);
 
-	clearScreen(0x00);
-	drawBorder();
-
 	while (true)
 	{
 		switch (game.gameState)
@@ -34,7 +31,7 @@ int main(void)
 			if (redrawMenu)
 			{
 				redrawMenu = false;
-				drawMenu();
+				drawMenu(SnakeStartMenu);
 			}
 			userInputMenu();		
 			break;
@@ -48,7 +45,7 @@ int main(void)
 			drawScore();
 			delay_us(20000);
 			
-			// if (snake.velocity[0].x)
+			// if (snake.headVelocity.x)
 			// {
 			// 	delay_us(20000);
 			// }
@@ -93,61 +90,61 @@ void userInputGame()
 {
 	if ( !(GPIOA->IDR & GPIO_IDR_IDR8) )
 	{
-		snake.prevDirection.x = snake.velocity[0].x;
-		snake.prevDirection.y = snake.velocity[0].y;
+		snake.prevDirection.x = snake.headVelocity.x;
+		snake.prevDirection.y = snake.headVelocity.y;
 
-		snake.velocity[0].x = 0;
-		snake.velocity[0].y = -1;  //up
+		snake.headVelocity.x = 0;
+		snake.headVelocity.y = -1;  //up
 
-		if (snake.velocity[0].x == snake.prevDirection.x * -1 && snake.velocity[0].y == snake.prevDirection.y * -1)
+		if (snake.headVelocity.x == snake.prevDirection.x * -1 && snake.headVelocity.y == snake.prevDirection.y * -1)
 		{
-			snake.velocity[0].x *= -1;
-			snake.velocity[0].y *= -1;
+			snake.headVelocity.x *= -1;
+			snake.headVelocity.y *= -1;
 		}
 	}
 
 	else if ( !(GPIOB->IDR & GPIO_IDR_IDR15) )
 	{
-		snake.prevDirection.x = snake.velocity[0].x;
-		snake.prevDirection.y = snake.velocity[0].y;
+		snake.prevDirection.x = snake.headVelocity.x;
+		snake.prevDirection.y = snake.headVelocity.y;
 		
-		snake.velocity[0].x = 0;
-		snake.velocity[0].y = 1;  //down
+		snake.headVelocity.x = 0;
+		snake.headVelocity.y = 1;  //down
 
-		if (snake.velocity[0].x == snake.prevDirection.x * -1 && snake.velocity[0].y == snake.prevDirection.y * -1)
+		if (snake.headVelocity.x == snake.prevDirection.x * -1 && snake.headVelocity.y == snake.prevDirection.y * -1)
 		{
-			snake.velocity[0].x *= -1;
-			snake.velocity[0].y *= -1;
+			snake.headVelocity.x *= -1;
+			snake.headVelocity.y *= -1;
 		}
 	}
 
 	else if ( !(GPIOB->IDR & GPIO_IDR_IDR14) )
 	{
-		snake.prevDirection.x = snake.velocity[0].x;
-		snake.prevDirection.y = snake.velocity[0].y;
+		snake.prevDirection.x = snake.headVelocity.x;
+		snake.prevDirection.y = snake.headVelocity.y;
 
-		snake.velocity[0].x = -1;
-		snake.velocity[0].y = 0;  //left
+		snake.headVelocity.x = -1;
+		snake.headVelocity.y = 0;  //left
 
-		if (snake.velocity[0].x == snake.prevDirection.x * -1 && snake.velocity[0].y == snake.prevDirection.y * -1)
+		if (snake.headVelocity.x == snake.prevDirection.x * -1 && snake.headVelocity.y == snake.prevDirection.y * -1)
 		{
-			snake.velocity[0].x *= -1;
-			snake.velocity[0].y *= -1;
+			snake.headVelocity.x *= -1;
+			snake.headVelocity.y *= -1;
 		}
 	}
 
 	else if ( !(GPIOB->IDR & GPIO_IDR_IDR13) )
 	{
-		snake.prevDirection.x = snake.velocity[0].x;
-		snake.prevDirection.y = snake.velocity[0].y;
+		snake.prevDirection.x = snake.headVelocity.x;
+		snake.prevDirection.y = snake.headVelocity.y;
 
-		snake.velocity[0].x = 1;
-		snake.velocity[0].y = 0;  //right
+		snake.headVelocity.x = 1;
+		snake.headVelocity.y = 0;  //right
 
-		if (snake.velocity[0].x == snake.prevDirection.x * -1 && snake.velocity[0].y == snake.prevDirection.y * -1)
+		if (snake.headVelocity.x == snake.prevDirection.x * -1 && snake.headVelocity.y == snake.prevDirection.y * -1)
 		{
-			snake.velocity[0].x *= -1;
-			snake.velocity[0].y *= -1;
+			snake.headVelocity.x *= -1;
+			snake.headVelocity.y *= -1;
 		}
 	}
 }
