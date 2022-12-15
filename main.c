@@ -7,7 +7,8 @@
 #include "StaticLib/game.h"
 
 void initButtons();
-void userInput();
+void userInputGame();
+void userInputMenu();
 
 int main(void)
 {
@@ -17,29 +18,68 @@ int main(void)
 	SPI1_Init();
 	SPI1_Preset();	
 
-	clearScreen(0x00);
+	game.gameState = MainMenu;
 
-	initVideoBuffer(&videoBuffer);
-
-	initGame();
-	initSnake();
 	initButtons();
-	placeFruit(10, 10);
+	placeFruit(10, 50);
+
+	clearScreen(0x00);
+	drawBorder();
 
 	while (true)
 	{
-		if (game.isAlive)
+		switch (game.gameState)
 		{
-			userInput();
+		case MainMenu:	
+			if (redrawMenu)
+			{
+				redrawMenu = false;
+				drawMenu();
+			}
+			userInputMenu();		
+			break;
+
+		case Alive:
+			userInputGame();
 			moveSnake();
 			drawFruit(Draw);
 			gameUpdate();
 			drawSnake();
+			drawScore();
 			delay_us(20000);
+			
+			// if (snake.velocity[0].x)
+			// {
+			// 	delay_us(20000);
+			// }
+			// else
+			// {
+			// 	if (game.score > 20)
+			// 	{
+			// 		//delay_us(1000);
+			// 	}
+			// 	else if (game.score > 10)
+			// 	{	
+			// 		delay_us(10000);	
+			// 	}
+			// 	else
+			// 		delay_us(17000);
+			// }
+			break;
+
+		case Lose:
+			userInputMenu();
+			break;
+
+		case Win:
+			userInputMenu();
+			break;
+		
+		default:
+			break;
 		}
 	}
 }
-
 
 void TIM2_IRQHandler(void)
 {
@@ -49,9 +89,9 @@ void TIM2_IRQHandler(void)
 	}
 }
 
-void userInput()
+void userInputGame()
 {
-	if ( !(GPIOB->IDR & GPIO_IDR_IDR15) )
+	if ( !(GPIOA->IDR & GPIO_IDR_IDR8) )
 	{
 		snake.prevDirection.x = snake.velocity[0].x;
 		snake.prevDirection.y = snake.velocity[0].y;
@@ -66,7 +106,7 @@ void userInput()
 		}
 	}
 
-	else if ( !(GPIOB->IDR & GPIO_IDR_IDR14) )
+	else if ( !(GPIOB->IDR & GPIO_IDR_IDR15) )
 	{
 		snake.prevDirection.x = snake.velocity[0].x;
 		snake.prevDirection.y = snake.velocity[0].y;
@@ -81,7 +121,7 @@ void userInput()
 		}
 	}
 
-	else if ( !(GPIOB->IDR & GPIO_IDR_IDR13) )
+	else if ( !(GPIOB->IDR & GPIO_IDR_IDR14) )
 	{
 		snake.prevDirection.x = snake.velocity[0].x;
 		snake.prevDirection.y = snake.velocity[0].y;
@@ -96,7 +136,7 @@ void userInput()
 		}
 	}
 
-	else if ( !(GPIOB->IDR & GPIO_IDR_IDR12) )
+	else if ( !(GPIOB->IDR & GPIO_IDR_IDR13) )
 	{
 		snake.prevDirection.x = snake.velocity[0].x;
 		snake.prevDirection.y = snake.velocity[0].y;
@@ -112,9 +152,24 @@ void userInput()
 	}
 }
 
+void userInputMenu()
+{
+	if ( !(GPIOB->IDR & GPIO_IDR_IDR12) )
+	{
+		initVideoBuffer(&videoBuffer);
+		clearScreen(0x00);
+		initGame();
+		initSnake();
+	}
+}
+
 void initButtons()
 {
 	RCC->APB2ENR |= RCC_APB2ENR_IOPBEN;
+	RCC->APB2ENR |= RCC_APB2ENR_IOPAEN;
+
+	GPIOA->CRH &= ~(GPIO_CRH_CNF8 | GPIO_CRH_MODE8) | GPIO_CRH_CNF8_1;
+	GPIOA->ODR |= GPIO_ODR_ODR8;
 
 	GPIOB->CRH &= ~GPIO_CRH_CNF12;
 	GPIOB->CRH |= GPIO_CRH_CNF12_1;

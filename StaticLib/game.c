@@ -5,10 +5,16 @@ Snake snake;
 VideoBuffer videoBuffer;
 Fruit fruit;
 
+bool redrawMenu = true;
+
 void moveSnake()
 {
 	if (snake.coords[0].x >= DISPLAY_WIDTH - SNAKE_SCALE || snake.coords[0].y >= DISPLAY_HEIGHT - SNAKE_SCALE)
-		game.isAlive = false;
+	{
+		//game.gameState = Lose;
+		stopGame(MainMenu);
+		redrawMenu = true;
+	}
 
 	for (uint8_t i = game.score + SNAKE_START_LENGTH - 1; i > 0; i--)
 	{
@@ -62,13 +68,13 @@ void initSnake()
 
 void initGame()
 {
-	game.isAlive = true;
 	game.score = 0;
+	game.gameState = Alive;
 }
 
-void stopGame()
+void stopGame(GameState gamestate)
 {
-	game.isAlive = false;
+	game.gameState = gamestate;
 	game.score = 0;
 }
 
@@ -76,32 +82,23 @@ void drawSnake()
 {
 	for (uint8_t i = 0; i < game.score + SNAKE_START_LENGTH; i++)
 	{
-		drawToBuffer(&videoBuffer, snake.coords[i].x, snake.coords[i].y / 8, 0x1F << (snake.coords[i].y % 8), Draw);
-		if (snake.velocity[0].y < 0)
+		if (snake.velocity[0].y)
 		{
 			for (uint8_t x = 0; x < SNAKE_SCALE; x++)
 				drawToBuffer(&videoBuffer, snake.coords[i].x + x, snake.coords[i].y / 8, 0x1F << (snake.coords[i].y % 8), Draw);
 		}
-		else if (snake.velocity[0].y > 0)
-		{
-			for (uint8_t x = 0; x < SNAKE_SCALE; x++)
-				drawToBuffer(&videoBuffer, snake.coords[i].x + x, snake.coords[i].y / 8, 0x1F << (snake.coords[i].y % 8), Draw);
-		}
+		else
+			drawToBuffer(&videoBuffer, snake.coords[i].x, snake.coords[i].y / 8, 0x1F << (snake.coords[i].y % 8), Draw);
 
 		if ((snake.coords[i].y % 8) > 8 - SNAKE_SCALE)
 		{
-			drawToBuffer(&videoBuffer, snake.coords[i].x, snake.coords[i].y / 8 + 1, 0x1F >> (8 - snake.coords[i].y % 8), Draw);
-
-			if (snake.velocity[0].y < 0)
+			if (snake.velocity[0].y)
 			{
 				for (uint8_t x = 0; x < SNAKE_SCALE; x++)
 					drawToBuffer(&videoBuffer, snake.coords[i].x + x, snake.coords[i].y / 8 + 1, 0x1F >> (8 - snake.coords[i].y % 8), Draw);
 			}
-			else if (snake.velocity[0].y > 0)
-			{
-				for (uint8_t x = 0; x < SNAKE_SCALE; x++)
-					drawToBuffer(&videoBuffer, snake.coords[i].x + x, snake.coords[i].y / 8 + 1, 0x1F >> (8 - snake.coords[i].y % 8), Draw);
-			}
+			else
+				drawToBuffer(&videoBuffer, snake.coords[i].x, snake.coords[i].y / 8 + 1, 0x1F >> (8 - snake.coords[i].y % 8), Draw);
 		}
 	}
 
@@ -199,7 +196,9 @@ void gameUpdate()
 	{
 		if (snake.coords[0].x == snake.coords[i].x && snake.coords[0].y == snake.coords[i].y)
 		{
-			stopGame();
+			//stopGame(Lose);
+			stopGame(MainMenu);
+			redrawMenu = true;
 		}
 	}
 
@@ -218,11 +217,63 @@ void gameUpdate()
 			{
 				eatFruit();
 
-				if (game.score >= 50)
+				if (game.score >= 75)
 				{
-					stopGame();
+					stopGame(Win);
 				}
 			}
 		}
 	}    
+}
+
+void drawMenu()
+{
+	clearScreen(0x00);
+
+	for (uint8_t j = 0; j < DISPLAY_HEIGHT / 8; j++)
+	{
+		for (uint8_t i = 0; i < DISPLAY_WIDTH; i++)
+		{
+			paintRegion(i, j, SnakeStartMenu[7 - j][127-i]);
+		}
+	}
+}
+
+void drawDigit(uint8_t digit, uint8_t x, uint8_t y)
+{
+	uint8_t page = y >> 3;
+	uint8_t offset = y << 5;
+	offset = offset >> 5;
+
+	if (offset > 1)
+		for (uint8_t i = 0; i < 5; i++)
+		{
+			paintRegion(x + i, page, digits[digit][i] << offset);
+			paintRegion(x + i, page + 1, digits[digit][i] >> (8 - offset));
+		}
+	else 
+		for (uint8_t i = 0; i < 5; i++)
+			paintRegion(x + i, page, digits[digit][i]);
+	
+}
+
+void drawScore()
+{
+	uint8_t offset = 62;
+	uint8_t score = game.score / 5;
+
+	if (score > 9)
+	{
+		drawDigit(score % 10, offset, 0);
+		score /= 10;
+		offset = 56;
+	}
+	drawDigit(score, offset, 0);
+	
+}
+
+void drawBorder()
+{
+	for (uint8_t i = 0; i < DISPLAY_WIDTH; i++)
+			paintRegion(i, 0, 0x80);
 }

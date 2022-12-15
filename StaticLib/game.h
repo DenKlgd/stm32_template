@@ -5,6 +5,7 @@
     #include <stdint.h>
     #include <stdbool.h>
     #include "videobuffer.h"
+    #include "images.h"
 
     #define SNAKE_SCALE 5
     #define SNAKE_LENGTH 255
@@ -12,10 +13,18 @@
 
     #define FRUIT_SIZE 5
 
+    typedef enum GameState
+    {
+        MainMenu,
+        Alive,
+        Lose,
+        Win,
+    } GameState;
+
     typedef struct Game
     {
-        bool isAlive;
         uint8_t score;
+        GameState gameState;
     } Game;
 
     typedef struct Coords
@@ -42,11 +51,11 @@
         Coords coords;
     } Fruit;
     
-
     extern Game game;
     extern Snake snake;
     extern VideoBuffer videoBuffer;
     extern Fruit fruit;
+    extern bool redrawMenu;
 
     void moveSnake();
 
@@ -54,7 +63,7 @@
 
     void initGame();
 
-    void stopGame();
+    void stopGame(GameState gamestate);
 
     void placeFruit(uint8_t x, uint8_t y);
 
@@ -65,5 +74,13 @@
     void eatFruit();
 
     void gameUpdate();
+
+    void drawMenu();
+
+    void drawDigit(uint8_t digit, uint8_t x, uint8_t y);
+
+    void drawScore();
+
+    void drawBorder();
 
 #endif
