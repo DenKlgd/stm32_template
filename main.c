@@ -3,7 +3,7 @@
 #include "StaticLib/spi.h"
 #include "StaticLib/configuration.h"
 #include "StaticLib/display.h"
-#include "StaticLib/videobuffer.h"
+#include "StaticLib/DoubleBuffering.h"
 #include "StaticLib/game.h"
 
 void initButtons();
@@ -21,7 +21,7 @@ int main(void)
 	game.gameState = MainMenu;
 
 	initButtons();
-	placeFruit(10, 50);
+	placeFruit(TIM2->CNT % (DISPLAY_WIDTH - SNAKE_SCALE + 1), TIM2->CNT % (DISPLAY_HEIGHT - SNAKE_SCALE + 1));
 
 	while (true)
 	{
@@ -39,29 +39,12 @@ int main(void)
 		case Alive:
 			userInputGame();
 			moveSnake();
-			drawFruit(Draw);
 			gameUpdate();
 			drawSnake();
+			drawFruit();
 			drawScore();
+			drawFromBufferToDisplay(&videoBuffer);	
 			delay_us(20000);
-			
-			// if (snake.headVelocity.x)
-			// {
-			// 	delay_us(20000);
-			// }
-			// else
-			// {
-			// 	if (game.score > 20)
-			// 	{
-			// 		//delay_us(1000);
-			// 	}
-			// 	else if (game.score > 10)
-			// 	{	
-			// 		delay_us(10000);	
-			// 	}
-			// 	else
-			// 		delay_us(17000);
-			// }
 			break;
 
 		case Lose:

@@ -7,6 +7,7 @@
         "delay.h": "c",
         "stdint.h": "c",
         "videobuffer.h": "c",
-        "stdbool.h": "c"
+        "stdbool.h": "c",
+        "doublebuffering.h": "c"
     }
 }

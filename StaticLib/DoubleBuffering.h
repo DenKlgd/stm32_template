@@ -6,18 +6,6 @@
     #include <stdbool.h>
     #include "display.h"
 
-    typedef struct DisplayCoords
-    {
-        uint8_t x;
-        uint8_t page;
-    } DisplayCoords;
-
-    typedef enum DrawMethod
-    {
-        Draw,
-        ApplyMask
-    } DrawMethod;
-
     typedef enum Frame
     {
         PreviousFrame, 

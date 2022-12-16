@@ -5,7 +5,7 @@
     #include <stdint.h>
     #include <stdbool.h>
     #include "delay.h"
-    #include "videobuffer.h"
+    #include "DoubleBuffering.h"
     #include "images.h"
 
     #define SNAKE_SCALE 5
@@ -43,7 +43,7 @@
     typedef struct Snake
     {
         Coords coords[SNAKE_LENGTH];
-        Velocity headVelocity, tailVelocity;
+        Velocity headVelocity;
         Velocity prevDirection;
     } Snake;
 
@@ -70,7 +70,7 @@
 
     void drawSnake();
 
-    void drawFruit(DrawMethod draw);
+    void drawFruit();
 
     void eatFruit();
 
@@ -81,7 +81,5 @@
     void drawDigit(uint8_t digit, uint8_t x, uint8_t y);
 
     void drawScore();
-
-    void drawBorder();
 
 #endif

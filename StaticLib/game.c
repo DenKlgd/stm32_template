@@ -9,7 +9,7 @@ bool redrawMenu = true;
 
 void moveSnake()
 {
-	if ((snake.coords[0].x + snake.headVelocity.x >= DISPLAY_WIDTH - SNAKE_SCALE) || ((uint8_t)(snake.coords[0].y + snake.headVelocity.y) >= DISPLAY_HEIGHT - SNAKE_SCALE))
+	if (snake.coords[0].x + snake.headVelocity.x >= DISPLAY_WIDTH - SNAKE_SCALE || snake.coords[0].y + snake.headVelocity.y >= DISPLAY_HEIGHT - SNAKE_SCALE)
 	{
 		//game.gameState = Lose;
 		stopGame(MainMenu);
@@ -22,28 +22,6 @@ void moveSnake()
 		snake.coords[i].y = snake.coords[i-1].y;	
 	}
 
-	const uint8_t snakeTailIndex = game.score + SNAKE_START_LENGTH - 1;
-	if (snake.coords[snakeTailIndex].y - snake.coords[snakeTailIndex-1].y > 0)
-	{
-		snake.tailVelocity.y = -1;
-		snake.tailVelocity.x = 0;
-	}
-	else if (snake.coords[snakeTailIndex].y - snake.coords[snakeTailIndex-1].y < 0)
-	{
-		snake.tailVelocity.y = 1;
-		snake.tailVelocity.x = 0;
-	}
-	else if (snake.coords[snakeTailIndex].x - snake.coords[snakeTailIndex-1].x < 0)
-	{
-		snake.tailVelocity.y = 0;
-		snake.tailVelocity.x = 1;
-	}
-	else if (snake.coords[snakeTailIndex].x - snake.coords[snakeTailIndex-1].x > 0)
-	{
-		snake.tailVelocity.y = 0;
-		snake.tailVelocity.x = -1;
-	}
-
 	snake.coords[0].x += snake.headVelocity.x;
 	snake.coords[0].y += snake.headVelocity.y;
 }
@@ -54,8 +32,6 @@ void initSnake()
 	snake.coords[0].y = 50;
 	snake.headVelocity.x = 1;
 	snake.headVelocity.y = 0;
-	snake.tailVelocity.x = snake.headVelocity.x;
-	snake.tailVelocity.y = snake.headVelocity.y;
 	snake.prevDirection.x = -1 * snake.headVelocity.x;
 	snake.prevDirection.y = -1 * snake.headVelocity.y;
 
@@ -80,74 +56,47 @@ void stopGame(GameState gamestate)
 
 void drawSnake()
 {
-	if ((snake.coords[0].x + snake.headVelocity.x >= DISPLAY_WIDTH - SNAKE_SCALE) || ((uint8_t)(snake.coords[0].y + snake.headVelocity.y) >= DISPLAY_HEIGHT - SNAKE_SCALE))
+	for (uint8_t i = 0; i < game.score + SNAKE_START_LENGTH - 1; i++)
 	{
-		//game.gameState = Lose;
-		stopGame(MainMenu);
-		redrawMenu = true;
-		return;
-	}
-
-	for (uint8_t i = 0; i < game.score + SNAKE_START_LENGTH; i++)
-	{
-		if (snake.headVelocity.y)
+		if (snake.coords[i].y - snake.coords[i+1].y)
 		{
 			for (uint8_t x = 0; x < SNAKE_SCALE; x++)
-				drawToBuffer(&videoBuffer, snake.coords[i].x + x, snake.coords[i].y / 8, 0x1F << (snake.coords[i].y % 8), Draw);
+				drawToBuffer(&videoBuffer, snake.coords[i].x + x, snake.coords[i].y / 8, 0x1F << (snake.coords[i].y % 8));
 		}
 		else
-			drawToBuffer(&videoBuffer, snake.coords[i].x, snake.coords[i].y / 8, 0x1F << (snake.coords[i].y % 8), Draw);
+			drawToBuffer(&videoBuffer, snake.coords[i].x, snake.coords[i].y / 8, 0x1F << (snake.coords[i].y % 8));
 
 		if ((snake.coords[i].y % 8) > 8 - SNAKE_SCALE)
 		{
-			if (snake.headVelocity.y)
+			if (snake.coords[i].y - snake.coords[i+1].y)
 			{
 				for (uint8_t x = 0; x < SNAKE_SCALE; x++)
-					drawToBuffer(&videoBuffer, snake.coords[i].x + x, snake.coords[i].y / 8 + 1, 0x1F >> (8 - snake.coords[i].y % 8), Draw);
+					drawToBuffer(&videoBuffer, snake.coords[i].x + x, snake.coords[i].y / 8 + 1, 0x1F >> (8 - snake.coords[i].y % 8));
 			}
 			else
-				drawToBuffer(&videoBuffer, snake.coords[i].x, snake.coords[i].y / 8 + 1, 0x1F >> (8 - snake.coords[i].y % 8), Draw);
+				drawToBuffer(&videoBuffer, snake.coords[i].x, snake.coords[i].y / 8 + 1, 0x1F >> (8 - snake.coords[i].y % 8));
 		}
 	}
 
-	const uint8_t snakeTailIndex = game.score + SNAKE_START_LENGTH - 1;
-
-	if (snake.tailVelocity.x > 0)
-	{
-		drawToBuffer(&videoBuffer, snake.coords[snakeTailIndex].x, snake.coords[snakeTailIndex].y / 8, 0x00, ApplyMask);
-		if ((snake.coords[snakeTailIndex].y % 8) > 8 - SNAKE_SCALE)
-		{
-			drawToBuffer(&videoBuffer, snake.coords[snakeTailIndex].x, snake.coords[snakeTailIndex].y / 8 + 1, 0xFF << (SNAKE_SCALE - (8 - snake.coords[snakeTailIndex].y % 8)), ApplyMask);
-		}
-	}
-
-	else if (snake.tailVelocity.x < 0)
-	{
-		drawToBuffer(&videoBuffer, snake.coords[snakeTailIndex].x + SNAKE_SCALE - 1, snake.coords[snakeTailIndex].y / 8, 0x00, ApplyMask);
-		if ((snake.coords[snakeTailIndex].y % 8) > 8 - SNAKE_SCALE)
-		{
-			drawToBuffer(&videoBuffer, snake.coords[snakeTailIndex].x + SNAKE_SCALE - 1, snake.coords[snakeTailIndex].y / 8 + 1, 0xFF << (SNAKE_SCALE - (8 - snake.coords[snakeTailIndex].y % 8)), ApplyMask);
-		}
-	}
-
-	else if (snake.tailVelocity.y > 0)
+	uint8_t lastSnakeIndex = game.score + SNAKE_START_LENGTH - 1;
+	if (snake.coords[lastSnakeIndex].y - snake.coords[lastSnakeIndex - 1].y)
 	{
 		for (uint8_t x = 0; x < SNAKE_SCALE; x++)
-			drawToBuffer(&videoBuffer, snake.coords[snakeTailIndex].x + x, snake.coords[snakeTailIndex].y / 8, 0xFF << (snake.coords[snakeTailIndex].y % 8+1), ApplyMask);
+			drawToBuffer(&videoBuffer, snake.coords[lastSnakeIndex].x + x, snake.coords[lastSnakeIndex].y / 8, 0x1F << (snake.coords[lastSnakeIndex].y % 8));
 	}
+	else
+		drawToBuffer(&videoBuffer, snake.coords[lastSnakeIndex].x, snake.coords[lastSnakeIndex].y / 8, 0x1F << (snake.coords[lastSnakeIndex].y % 8));	
 
-	else if (snake.tailVelocity.y < 0)
+	if ((snake.coords[lastSnakeIndex].y % 8) > 8 - SNAKE_SCALE)
 	{
-		for (uint8_t x = 0; x < SNAKE_SCALE; x++)
+		if (snake.coords[lastSnakeIndex].y - snake.coords[lastSnakeIndex - 1].y)
 		{
-			if ((snake.coords[snakeTailIndex].y % 8) > 8 - SNAKE_SCALE)
-				drawToBuffer(&videoBuffer, snake.coords[snakeTailIndex].x + x, snake.coords[snakeTailIndex].y / 8 + 1, 0x1F >> (8 - snake.coords[snakeTailIndex].y % 8 + 1), ApplyMask);
-			else
-				drawToBuffer(&videoBuffer, snake.coords[snakeTailIndex].x + x, snake.coords[snakeTailIndex].y / 8, 0xFF >> (8 - (snake.coords[snakeTailIndex].y % 8 + SNAKE_SCALE - 1)), ApplyMask);
+			for (uint8_t x = 0; x < SNAKE_SCALE; x++)
+				drawToBuffer(&videoBuffer, snake.coords[lastSnakeIndex].x + x, snake.coords[lastSnakeIndex].y / 8 + 1, 0x1F >> (8 - snake.coords[lastSnakeIndex].y % 8));
 		}
+		else
+			drawToBuffer(&videoBuffer, snake.coords[lastSnakeIndex].x, snake.coords[lastSnakeIndex].y / 8 + 1, 0x1F >> (8 - snake.coords[lastSnakeIndex].y % 8));
 	}
-
-	drawFromBufferToDisplay(&videoBuffer);
 }
 
 void placeFruit(uint8_t x, uint8_t y)
@@ -156,40 +105,34 @@ void placeFruit(uint8_t x, uint8_t y)
     fruit.coords.y = y;
 }
 
-void drawFruit(DrawMethod draw)
+void drawFruit()
 {
 	uint8_t mask = 0x1F;
-	if (draw == ApplyMask)
-		mask = 0x00;
 
     for (uint8_t i = 0; i < FRUIT_SIZE; i++)
     {
-        drawToBuffer(&videoBuffer, fruit.coords.x + i, fruit.coords.y / 8, mask << (fruit.coords.y % 8), draw);
+		drawToBuffer(&videoBuffer, fruit.coords.x + i, fruit.coords.y / 8, mask << (fruit.coords.y % 8));
 
         if ((fruit.coords.y % 8) > 8 - SNAKE_SCALE)
 		{
-			drawToBuffer(&videoBuffer, fruit.coords.x + i, fruit.coords.y / 8 + 1, mask >> (8 - fruit.coords.y % 8), draw);
+			drawToBuffer(&videoBuffer, fruit.coords.x + i, fruit.coords.y / 8 + 1, mask >> (8 - fruit.coords.y % 8));
 		}
     }
 }
 
 void eatFruit()
 {
-	int16_t vX = snake.tailVelocity.x;
-	int16_t vY = snake.tailVelocity.y;
+	uint8_t lastSnakeIndex = game.score + SNAKE_START_LENGTH - 1;
+	int16_t vX = snake.coords[lastSnakeIndex].x - snake.coords[lastSnakeIndex - 1].x;
+	int16_t vY = snake.coords[lastSnakeIndex].y - snake.coords[lastSnakeIndex - 1].y;;
 
 	game.score += SNAKE_SCALE;
 	
-	for (int8_t i = game.score + SNAKE_START_LENGTH - 1; i > (int)(game.score + SNAKE_START_LENGTH - SNAKE_SCALE - 1); i--)
+	for (int8_t i = game.score + SNAKE_START_LENGTH - 1; i > game.score + SNAKE_START_LENGTH - SNAKE_SCALE - 1; i--)
 	{
-		snake.coords[i].x = snake.coords[i-SNAKE_SCALE].x + ( -1 * vX * SNAKE_SCALE );
-		snake.coords[i].y = snake.coords[i-SNAKE_SCALE].y + ( -1 * vY * SNAKE_SCALE );
+		snake.coords[i].x = snake.coords[i-SNAKE_SCALE].x + ( vX * SNAKE_SCALE );
+		snake.coords[i].y = snake.coords[i-SNAKE_SCALE].y + ( vY * SNAKE_SCALE );
 	}
-
-	snake.tailVelocity.x = vX;
-	snake.tailVelocity.y = vY;
-
-	drawFruit(ApplyMask);
 
 	Coords newFruitCoords;
 	newFruitCoords.x = TIM2->CNT % (DISPLAY_WIDTH - SNAKE_SCALE + 1);
@@ -261,12 +204,15 @@ void drawDigit(uint8_t digit, uint8_t x, uint8_t y)
 	if (offset > 1)
 		for (uint8_t i = 0; i < 5; i++)
 		{
-			paintRegion(x + i, page, digits[digit][i] << offset);
-			paintRegion(x + i, page + 1, digits[digit][i] >> (8 - offset));
+			drawToBuffer(&videoBuffer, x + i, page, digits[digit][i] << offset);
+			drawToBuffer(&videoBuffer, x + i, page + 1, digits[digit][i] >> (8 - offset));
+			// paintRegion(x + i, page, digits[digit][i] << offset);
+			// paintRegion(x + i, page + 1, digits[digit][i] >> (8 - offset));
 		}
 	else 
 		for (uint8_t i = 0; i < 5; i++)
-			paintRegion(x + i, page, digits[digit][i]);
+			drawToBuffer(&videoBuffer, x + i, page, digits[digit][i]);
+			//paintRegion(x + i, page, digits[digit][i]);
 	
 }
 
@@ -283,10 +229,4 @@ void drawScore()
 		score /= 10;
 		offset -= 6;
 	}
-}
-
-void drawBorder()
-{
-	for (uint8_t i = 0; i < DISPLAY_WIDTH; i++)
-			paintRegion(i, 0, 0x80);
 }

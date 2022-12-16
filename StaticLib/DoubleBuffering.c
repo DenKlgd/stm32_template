@@ -20,10 +20,10 @@ void initVideoBuffer(VideoBuffer* videobuffer)
 void drawToBuffer(VideoBuffer* videobuffer, uint8_t x, uint8_t page, uint8_t value)
 {
 	uint8_t* firstBuf = videobuffer->videobuffers[NextFrame];
-	*(firstBuf + x + page * 128) = value;
+	*(firstBuf + x + page * 128) |= value;
 }
 
-void compareBuffers(VideoBuffer* videobuffer)
+void drawFromBufferToDisplay(VideoBuffer* videobuffer)
 {
 	uint8_t* prevBuf = videobuffer->videobuffers[PreviousFrame];
 	uint8_t* nextBuf = videobuffer->videobuffers[NextFrame];
@@ -34,7 +34,7 @@ void compareBuffers(VideoBuffer* videobuffer)
 		{
 			if ( *(nextBuf + x + y * 128) != *(prevBuf + x + y * 128))
 			{
-				paintRegion(x, y / 8, *(nextBuf + x + y * 128));
+				paintRegion(x, y, *(nextBuf + x + y * 128));
 			}
 		}
 	}
@@ -42,4 +42,12 @@ void compareBuffers(VideoBuffer* videobuffer)
 	uint8_t* tmpBufPtr = videobuffer->videobuffers[0];
 	videobuffer->videobuffers[0] = videobuffer->videobuffers[1];
 	videobuffer->videobuffers[1] = tmpBufPtr;
+
+	for (uint8_t y = 0; y < 8; y++)
+	{
+		for (uint8_t x = 0; x < 128; x++)
+		{
+			*(tmpBufPtr + x + y * 128) = 0;
+		}
+	}
 }
