@@ -22,7 +22,7 @@ Menu mainMenu;
 Menu difficultyMenu;
 
 uint8_t mainMenuButtonsFrameCoords[2][4] = { {47, 36, 79, 50}, {32, 51, 97, 63} };
-uint8_t difficultyMenuButtonsFrameCoords[2][4] = { {34, 23, 92, 40}, {42, 48, 83, 59} };
+uint8_t difficultyMenuButtonsFrameCoords[2][4] = { {36, 23, 89, 40}, {42, 48, 83, 59} };
 MenuElementID button = 0;
 
 int main(void)
