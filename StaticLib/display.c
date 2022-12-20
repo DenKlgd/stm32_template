@@ -40,10 +40,7 @@ void paintRegion(uint8_t x, uint8_t page, uint8_t fillMask)
 		return;
 
 	uint8_t x_high, x_low;
-	//X_UNION x_union;
-
-	// x_union.high = x >> 4;
-	// x_union.low = x & 0x0F;
+	
 	x_high = x >> 4;          // Splitting column address between two address registers
 	x_low = x & 0x0F; 		  // 
 
@@ -54,8 +51,6 @@ void paintRegion(uint8_t x, uint8_t page, uint8_t fillMask)
 
 	SPI1_Write(0x00|x_low);
 	SPI1_Write(0x10|x_high);
-	// SPI1_Write(0x00|x_union.low );
-	// SPI1_Write(0x10|x_union.high);
 
 	while (SPI1->SR & SPI_SR_BSY);
 

@@ -12,7 +12,7 @@ void moveSnake()
 	if (snake.coords[0].x + snake.headVelocity.x >= DISPLAY_WIDTH - SNAKE_SCALE || snake.coords[0].y + snake.headVelocity.y >= DISPLAY_HEIGHT - SNAKE_SCALE)
 	{
 		//game.gameState = Lose;
-		stopGame(MainMenu);
+		stopGame(Lose);
 		redrawMenu = true;
 	}
 
@@ -52,6 +52,8 @@ void stopGame(GameState gamestate)
 {
 	game.gameState = gamestate;
 	game.score = 0;
+	clearScreen(0x00);
+	initVideoBuffer(&videoBuffer);
 }
 
 void drawSnake()
@@ -68,13 +70,15 @@ void drawSnake()
 
 		if ((snake.coords[i].y % 8) > 8 - SNAKE_SCALE)
 		{
+			uint8_t page = snake.coords[i].y / 8;
+
 			if (snake.coords[i].y - snake.coords[i+1].y)
 			{
 				for (uint8_t x = 0; x < SNAKE_SCALE; x++)
-					drawToBuffer(&videoBuffer, snake.coords[i].x + x, snake.coords[i].y / 8 + 1, 0x1F >> (8 - snake.coords[i].y % 8));
+					drawToBuffer(&videoBuffer, snake.coords[i].x + x, page + 1, 0x1F >> (8 - snake.coords[i].y % 8));
 			}
 			else
-				drawToBuffer(&videoBuffer, snake.coords[i].x, snake.coords[i].y / 8 + 1, 0x1F >> (8 - snake.coords[i].y % 8));
+				drawToBuffer(&videoBuffer, snake.coords[i].x, page + 1, 0x1F >> (8 - snake.coords[i].y % 8));
 		}
 	}
 
@@ -89,13 +93,15 @@ void drawSnake()
 
 	if ((snake.coords[lastSnakeIndex].y % 8) > 8 - SNAKE_SCALE)
 	{
+		uint8_t page = snake.coords[lastSnakeIndex].y / 8;
+
 		if (snake.coords[lastSnakeIndex].y - snake.coords[lastSnakeIndex - 1].y)
 		{
 			for (uint8_t x = 0; x < SNAKE_SCALE; x++)
-				drawToBuffer(&videoBuffer, snake.coords[lastSnakeIndex].x + x, snake.coords[lastSnakeIndex].y / 8 + 1, 0x1F >> (8 - snake.coords[lastSnakeIndex].y % 8));
+				drawToBuffer(&videoBuffer, snake.coords[lastSnakeIndex].x + x, page + 1, 0x1F >> (8 - snake.coords[lastSnakeIndex].y % 8));
 		}
 		else
-			drawToBuffer(&videoBuffer, snake.coords[lastSnakeIndex].x, snake.coords[lastSnakeIndex].y / 8 + 1, 0x1F >> (8 - snake.coords[lastSnakeIndex].y % 8));
+			drawToBuffer(&videoBuffer, snake.coords[lastSnakeIndex].x, page + 1, 0x1F >> (8 - snake.coords[lastSnakeIndex].y % 8));
 	}
 }
 
@@ -147,8 +153,8 @@ void gameUpdate()
 	{
 		if (snake.coords[0].x == snake.coords[i].x && snake.coords[0].y == snake.coords[i].y)
 		{
-			//stopGame(Lose);
-			stopGame(MainMenu);
+			stopGame(Lose);
+			//stopGame(MainMenu);
 			redrawMenu = true;
 		}
 	}
@@ -168,7 +174,7 @@ void gameUpdate()
 			{
 				eatFruit();
 
-				if (game.score >= 75)
+				if (game.score >= game.scoreToBeat * 5)
 				{
 					//stopGame(Win);
 
@@ -176,6 +182,7 @@ void gameUpdate()
 					redrawMenu = true;
 					drawMenu(FunFace);
 					delay_us(1000000);
+					clearScreen(0x00);
 				}
 			}
 		}
@@ -191,6 +198,17 @@ void drawMenu(uint8_t menu[64][128])
 		for (uint8_t i = 0; i < DISPLAY_WIDTH; i++)
 		{
 			paintRegion(i, j, menu[7 - j][127-i]);
+		}
+	}
+}
+
+void drawMenuToBuffer(uint8_t menu[64][128])
+{
+	for (uint8_t j = 0; j < DISPLAY_HEIGHT / 8; j++)
+	{
+		for (uint8_t i = 0; i < DISPLAY_WIDTH; i++)
+		{
+			drawToBuffer(&videoBuffer, i, j, menu[7 - j][127-i]);
 		}
 	}
 }
@@ -216,17 +234,28 @@ void drawDigit(uint8_t digit, uint8_t x, uint8_t y)
 	
 }
 
-void drawScore()
+void drawNumber(uint8_t number, Coords coords)
 {
-	uint8_t offset = 62;
-	uint8_t score = game.score / 5;
+	if (!number) drawDigit(number, coords.x, coords.y);
 
-	if (!score) drawDigit(score, offset, 0);
-
-	while (score > 0)
+	while (number > 0)
 	{
-		drawDigit(score % 10, offset, 0);
-		score /= 10;
-		offset -= 6;
+		drawDigit(number % 10, coords.x, coords.y);
+		number /= 10;
+		coords.x -= 6;
+	}
+}
+
+void drawButtonFrameToBuffer(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1)
+{
+	for (uint8_t y = y0; y <= y1; y++)
+	{
+		for (uint8_t x = x0; x <= x1; x++)
+		{
+			if (y == y0 || y == y1)
+				drawToBuffer( &videoBuffer, x, y / 8, 0x01 << (y % 8) );
+		}
+		drawToBuffer(&videoBuffer, x0, y / 8, 0x01 << (y % 8));
+		drawToBuffer(&videoBuffer, x1, y / 8, 0x01 << (y % 8));
 	}
 }

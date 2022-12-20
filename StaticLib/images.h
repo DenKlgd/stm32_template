@@ -6,6 +6,8 @@
 
     extern uint8_t FunFace[8][128];
     extern uint8_t SnakeStartMenu[8][128];
+    extern uint8_t SnakeDifficultyMenu[8][128];
+    extern uint8_t DeathScreen[8][128];
     extern uint8_t digits[10][5];
 
 #endif

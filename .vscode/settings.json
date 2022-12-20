@@ -8,6 +8,7 @@
         "stdint.h": "c",
         "videobuffer.h": "c",
         "stdbool.h": "c",
-        "doublebuffering.h": "c"
+        "doublebuffering.h": "c",
+        "cstdlib": "c"
     }
 }

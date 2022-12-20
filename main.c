@@ -5,10 +5,25 @@
 #include "StaticLib/display.h"
 #include "StaticLib/DoubleBuffering.h"
 #include "StaticLib/game.h"
+#include "StaticLib/Menu.h"
+
+#define PLAY_BUTTON 0
+#define DIFFICULTY_BUTTON 1
+
+#define DIFFICULTY_SELECTOR 0
+#define GO_BACK_BUTTON 1
 
 void initButtons();
 void userInputGame();
 void userInputMenu();
+void userInputDifficultyMenu();
+
+Menu mainMenu;
+Menu difficultyMenu;
+
+uint8_t mainMenuButtonsFrameCoords[2][4] = { {47, 36, 79, 50}, {32, 51, 97, 63} };
+uint8_t difficultyMenuButtonsFrameCoords[2][4] = { {34, 23, 92, 40}, {42, 48, 83, 59} };
+MenuElementID button = 0;
 
 int main(void)
 {
@@ -19,9 +34,15 @@ int main(void)
 	SPI1_Preset();	
 
 	game.gameState = MainMenu;
+	game.scoreToBeat = 15;
 
+	initMenu(&mainMenu, 2);
+	initMenu(&difficultyMenu, 2);
 	initButtons();
 	placeFruit(TIM2->CNT % (DISPLAY_WIDTH - SNAKE_SCALE + 1), TIM2->CNT % (DISPLAY_HEIGHT - SNAKE_SCALE + 1));
+
+	clearScreen(0x00);
+	initVideoBuffer(&videoBuffer);
 
 	while (true)
 	{
@@ -31,7 +52,10 @@ int main(void)
 			if (redrawMenu)
 			{
 				redrawMenu = false;
-				drawMenu(SnakeStartMenu);
+				drawMenuToBuffer(SnakeStartMenu);
+				drawButtonFrameToBuffer(mainMenuButtonsFrameCoords[button][0], mainMenuButtonsFrameCoords[button][1], mainMenuButtonsFrameCoords[button][2], mainMenuButtonsFrameCoords[button][3]);
+				drawFromBufferToDisplay(&videoBuffer);
+				delay_us(300000);
 			}
 			userInputMenu();		
 			break;
@@ -42,19 +66,36 @@ int main(void)
 			gameUpdate();
 			drawSnake();
 			drawFruit();
-			drawScore();
+			drawNumber(game.score / 5, (Coords){62, 0});
 			drawFromBufferToDisplay(&videoBuffer);	
 			delay_us(20000);
 			break;
 
 		case Lose:
-			userInputMenu();
+			drawMenuToBuffer(DeathScreen);
+			drawFromBufferToDisplay(&videoBuffer);
+			delay_us(1000000);
+			stopGame(MainMenu);
+			//userInputMenu();
 			break;
 
 		case Win:
 			userInputMenu();
 			break;
 		
+		case DifficultyMenu:
+			if (redrawMenu)
+			{
+				redrawMenu = false;
+				drawMenuToBuffer(SnakeDifficultyMenu);
+				drawButtonFrameToBuffer(difficultyMenuButtonsFrameCoords[button][0], difficultyMenuButtonsFrameCoords[button][1], difficultyMenuButtonsFrameCoords[button][2], difficultyMenuButtonsFrameCoords[button][3]);
+				drawNumber(game.scoreToBeat, (Coords){64, 29});
+				drawFromBufferToDisplay(&videoBuffer);
+				delay_us(300000);
+			}
+			userInputDifficultyMenu();
+			break;
+
 		default:
 			break;
 		}
@@ -134,12 +175,99 @@ void userInputGame()
 
 void userInputMenu()
 {
-	if ( !(GPIOB->IDR & GPIO_IDR_IDR12) )
+	if ( !(GPIOA->IDR & GPIO_IDR_IDR8) )
 	{
-		initVideoBuffer(&videoBuffer);
-		clearScreen(0x00);
-		initGame();
-		initSnake();
+		button = move(&mainMenu, Up);	//up
+		redrawMenu = true;
+	}
+
+	else if ( !(GPIOB->IDR & GPIO_IDR_IDR15) )
+	{
+		button = move(&mainMenu, Down);	//down
+		redrawMenu = true;
+	}
+
+	else if ( !(GPIOB->IDR & GPIO_IDR_IDR12) )
+	{
+		MenuElementID menuElemID = getPressedMenuElement(&mainMenu);	//mid
+		
+		switch (menuElemID)
+		{
+		case PLAY_BUTTON:
+			initVideoBuffer(&videoBuffer);
+			clearScreen(0x00);
+			initGame();
+			initSnake();
+			break;
+		
+		case DIFFICULTY_BUTTON:
+			game.gameState = DifficultyMenu;
+			redrawMenu = true;
+			break;
+
+		default:
+			break;
+		}
+	}
+
+	// if ( !(GPIOB->IDR & GPIO_IDR_IDR12) )
+	// {
+	// 	initVideoBuffer(&videoBuffer);
+	// 	clearScreen(0x00);
+	// 	initGame();
+	// 	initSnake();
+	// }
+}
+
+void userInputDifficultyMenu()
+{
+	if ( !(GPIOA->IDR & GPIO_IDR_IDR8) )
+	{
+		button = move(&difficultyMenu, Up);	//up
+		redrawMenu = true;
+	}
+
+	else if ( !(GPIOB->IDR & GPIO_IDR_IDR15) )
+	{
+		button = move(&difficultyMenu, Down);	//down
+		redrawMenu = true;
+	}
+
+	else if (button == DIFFICULTY_SELECTOR)
+	{
+		if ( !(GPIOB->IDR & GPIO_IDR_IDR14) )
+		{
+			if (game.scoreToBeat * 5 > SNAKE_SCALE)
+			{
+				game.scoreToBeat--;					//left
+				redrawMenu = true;
+			}
+		}
+
+		else if ( !(GPIOB->IDR & GPIO_IDR_IDR13) )
+		{
+			if (game.scoreToBeat * 5 < SNAKE_LENGTH - SNAKE_START_LENGTH)
+			{
+				game.scoreToBeat++;					//right
+				redrawMenu = true;
+			}
+		}
+	}
+	
+	else if ( !(GPIOB->IDR & GPIO_IDR_IDR12) )
+	{
+		MenuElementID menuElemID = getPressedMenuElement(&difficultyMenu);	//mid
+		
+		switch (menuElemID)
+		{
+		case GO_BACK_BUTTON:
+			game.gameState = MainMenu;
+			redrawMenu = true;
+			break;
+
+		default:
+			break;
+		}
 	}
 }
 

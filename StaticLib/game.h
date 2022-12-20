@@ -20,18 +20,20 @@
         Alive,
         Lose,
         Win,
+        DifficultyMenu
     } GameState;
 
     typedef struct Game
     {
         uint8_t score;
+        uint8_t scoreToBeat;
         GameState gameState;
     } Game;
 
     typedef struct Coords
     {
-        uint8_t x;
-        uint8_t y;
+        uint8_t x : 7;
+        uint8_t y : 6;
     } Coords;
 
     typedef struct Velocity
@@ -76,10 +78,14 @@
 
     void gameUpdate();
 
-    void drawMenu();
+    void drawMenu(uint8_t menu[64][128]);
+    
+    void drawMenuToBuffer(uint8_t menu[64][128]);
 
     void drawDigit(uint8_t digit, uint8_t x, uint8_t y);
 
-    void drawScore();
+    void drawNumber(uint8_t number, Coords coords);
+
+    void drawButtonFrameToBuffer(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1);
 
 #endif
